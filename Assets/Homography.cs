@@ -82,7 +82,8 @@ public static class Homography {
 	dest3d_mat.SetColumn( 3, new Vector4( 0, 0, 0, 1 ) );
         
 	homography = dest3d_mat * sour_mat.inverse;
-    }
+
+	}
     
     static Vector4 MxV4( Matrix4x4 mat, Vector4 vec )
     {	    
