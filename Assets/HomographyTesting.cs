@@ -39,7 +39,7 @@ public class HomographyTesting : MonoBehaviour
 	UpdateUserInteraction();
 
 	// Update homography.
-	Homography.Find( _sensorUserPoints,  _camera.projectionMatrix, ref _homography );
+	Homography.Find( _sensorUserPoints, ref _homography );
     }
     
     
