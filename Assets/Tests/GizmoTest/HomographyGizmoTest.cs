@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HomographyTesting : MonoBehaviour
+public class HomographyGizmoTest : MonoBehaviour
 {
     // Camera space: 	positions relative to the camera position and rotation.
     // Clip space: 	positions relative to a cube that contains what the camera can see: (-1,-1,-1) to (1,1,1).
