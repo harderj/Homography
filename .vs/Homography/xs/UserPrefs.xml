@@ -1,0 +1,16 @@
+﻿<Properties StartupConfiguration="{EA29ABF2-E992-D3D3-64D0-E451B44DE2D1}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Homography.cs">
+    <Files>
+      <File FileName="Assets/Tests/BlitTest/HomographyBlitTest.cs" Line="55" Column="16" />
+      <File FileName="Assets/Tests/BlitTest/Resources/HomographytBlitTest.shader" Line="46" Column="3" />
+      <File FileName="Assets/Homography.cs" Line="78" Column="3" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="Unity.Editor" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
