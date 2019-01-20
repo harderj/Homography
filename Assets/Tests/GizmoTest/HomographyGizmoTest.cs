@@ -39,7 +39,7 @@ public class HomographyGizmoTest : MonoBehaviour
 	UpdateUserInteraction();
 
 	// Update homography.
-	Homography.Find_( _sensorUserPoints, ref _homography );
+	Homography.Find( _sensorUserPoints, ref _homography );
     }
     
     
