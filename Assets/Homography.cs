@@ -27,57 +27,76 @@ public static class Homography {
     
     // Sensor space points to be transformed.
     // Order: lower-left, upper-let, upper-right, lower-right.
-    static readonly Vector3[] sensorSourcePoints = { new Vector3( -1, -1, -1), new Vector3( -1, 1, -1 ), new Vector3( 1, 1, -1 ), new Vector3( 1, -1, -1 ) };
-    
-    /// <summary>
-    /// Finds the (3d) world space points, from (2d) points oberversed by the camera (in near clip space)
-    /// 
-    /// Assuming:
-    /// - four sensor space points p[i]=(x[i],y[i],-1) in order lower-left, upper-left, upper-right, lower-right, i=0..3
-    /// - the world space points form a parallelogram, that is: p[1] - p[0] = p[2] - p[3]
-    /// </summary>
+    static readonly Vector3[] sensorSourcePoints = { new Vector3( -1, -1, -1 ),
+						     new Vector3( -1,  1, -1 ),
+						     new Vector3(  1,  1, -1 ),
+						     new Vector3(  1, -1, -1 ) };
 
-    public static void nearClipToMatrix( Vector3[] nearClipSpacePoints,
+    public static void Find_( Vector3[] nearClipSpacePoints,
+			      ref Matrix4x4 homography )
+    {
+	if( nearClipSpacePoints.Length < 4 ) return;
+	Vector2[] nc = new Vector2[4];
+	for( int i=0; i<4; i++ )
+	    nc[i] = new Vector2( nearClipSpacePoints[i].x,
+				 nearClipSpacePoints[i].y );
+	nearClipToMatrix( nc, ref homography );
+    }
+
+    public static void nearClipToMatrix( Vector2[] nearClipSpacePoints,
 					 ref Matrix4x4 homography )
     {
 	nearClipToMatrix( nearClipSpacePoints,
-			  1,
-			  sensorSourcePoints,
-			  homography );
+			   5.0f, // very arbitrary
+			   sensorSourcePoints,
+			   ref homography );
     }
 
-    public static void nearClipToMatrix( Vector3[] nearClipSpacePoints,
-					 float length,
-					 Vector3[] source,
-					 ref Matrix4x4 homography )
+    public static void nearClipToMatrix( Vector2[] nearClipSpacePoints,
+					  float length,
+					  Vector3[] source,
+					  ref Matrix4x4 homography )
     {
-	if( nearClipSpacePoints.length < 4
+	if( nearClipSpacePoints.Length < 4
 	    || length <= 0
-	    || source.length < 3 ) return; // bail
+	    || source.Length < 3 ) return; // bail
 	Vector3[] pts = new Vector3[4];
-	nearClipToCamera( nearClipSpacePoints, length, pts );
+	nearClipToCamera( nearClipSpacePoints, length, ref pts );
         homography = pointsToTransformation( source, pts );
     }
-    
-    public static void nearClipToCamera( Vector2[] nearClipPos, float length, ref Vector3[] pts )
+
+    /// <summary>
+    /// Finds the (3d) world space points, from (2d) points oberversed
+    /// by the camera (in near clip space)
+    /// 
+    /// Assuming:
+    /// - four sensor space points p[i]=(x[i],y[i],-1) in order
+    ///   lower-left, upper-left, upper-right, lower-right, i=0..3
+    /// - the world space points form a parallelogram, that is:
+    ///   p[1] - p[0] = p[2] - p[3]
+    /// </summary>
+    public static void nearClipToCamera( Vector2[] nearClipPos,
+					 float length,
+					 ref Vector3[] pts )
     {	
 	Vector2[] nc = nearClipPos; // alias
-	int n = nc.length;
-	if (n < 4 || pts.length < 4) return;
+	int n = nc.Length;
+	if (n < 4 || pts.Length < 4) return;
         
-	Matrix4x4 em = Matrix4x4.identity;
+	Matrix4x4 em = Matrix4x4.identity; // set up system of eq.
 	em[0,0] = nc[0].x; em[0,1] = -nc[1].x; em[0,2] = nc[2].x; em[0,3] = 0;
 	em[1,0] = nc[0].y; em[1,1] = -nc[1].y; em[1,2] = nc[2].y; em[1,3] = 0;
 	em[2,0] =      -1; em[2,1] =        1; em[2,2] =      -1; em[2,3] = 0;
 	em[3,0] =       0; em[3,1] =        0; em[3,2] =       0; em[3,3] = 1;
 	Matrix4x4 em_inv = em.inverse;
-	Vector3 sc = em_inv.MultiplyPoint3x4( new Vector3( nc[3].x, nc[3].y, -1 ) );
+	Vector4 sc = em_inv.MultiplyPoint( new Vector4( nc[3].x, nc[3].y, -1, 0 ) );
         Vector3 tv = new Vector3( sc.x * nc[0].x - sc.y * nc[1].x, sc.x * nc[0].y - sc.y * nc[1].y, sc.y - sc.x );
 	float scale = length / tv.magnitude;
-	for ( int i = 0; i<n; i++ ) pts[i] = new Vector3( nc[i].x * scale, nc[i].y * scale, -1 * scale);
-	nc[0] = nc[0] * sc.x;
-	nc[1] = nc[1] * sc.y;
-	nc[2] = nc[2] * sc.z;
+	for ( int i = 0; i < 4; i++ ) pts[i] = new Vector3( nc[i].x, nc[i].y, -1 );
+        pts[0] = pts[0] * sc.x * scale;
+	pts[1] = pts[1] * sc.y * scale;
+	pts[2] = pts[2] * sc.z * scale;
+	pts[3] = pts[3] * scale;
     }
 
     public static void Find( Vector3[] nearClipSpacePoints, ref Matrix4x4 homography )
@@ -130,9 +149,9 @@ public static class Homography {
 
     public static Matrix4x4 pointsToMatrix( Vector3[] pts ) {
 	Matrix4x4 m = Matrix4x4.identity;
-	for (int i = 0; i < 3 && i < pts.length; i ++)
+	for (int i = 0; i < 3 && i < pts.Length; i ++)
 	    m.SetColumn( i, new Vector4( pts[i].x, pts[i].y, pts[i].z, 0) );
-	if( pts.length > 3 )
+	if( pts.Length > 3 )
 	    m.SetColumn( 3, new Vector4( pts[3].x, pts[3].y, pts[3].z, 1 ) );
 	return m;
     }
