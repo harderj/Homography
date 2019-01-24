@@ -1,11 +1,11 @@
 ﻿<Properties StartupConfiguration="{EA29ABF2-E992-D3D3-64D0-E451B44DE2D1}|">
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Tests/CustomQuadTest/CustomQuadTest.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Tests/CustomQuadTest/Resources/HomographytCustomQuadTest.shader">
     <Files>
       <File FileName="Assets/Tests/BlitTest/HomographyBlitTest.cs" Line="55" Column="16" />
       <File FileName="Assets/Tests/BlitTest/Resources/HomographytBlitTest.shader" Line="46" Column="3" />
       <File FileName="Assets/Homography.cs" Line="78" Column="3" />
       <File FileName="Assets/Tests/CustomQuadTest/CustomQuadTest.cs" Line="79" Column="3" />
-      <File FileName="Assets/Tests/CustomQuadTest/Resources/HomographytCustomQuadTest.shader" Line="39" Column="3" />
+      <File FileName="Assets/Tests/CustomQuadTest/Resources/HomographytCustomQuadTest.shader" Line="35" Column="4" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
