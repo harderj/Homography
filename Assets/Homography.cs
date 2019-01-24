@@ -46,16 +46,15 @@ public static class Homography {
     public static void nearClipToMatrix( Vector2[] nearClipSpacePoints,
 					 ref Matrix4x4 homography )
     {
-	nearClipToMatrix( nearClipSpacePoints,
-			   5.0f, // very arbitrary
-			   sensorSourcePoints,
-			   ref homography );
+	Vector3[] pts = new Vector3[4];
+	nearClipToCamera( nearClipSpacePoints, ref pts );
+        homography = pointsToTransformation( sensorSourcePoints, pts );
     }
 
     public static void nearClipToMatrix( Vector2[] nearClipSpacePoints,
-					  float length,
-					  Vector3[] source,
-					  ref Matrix4x4 homography )
+					 float length,
+					 Vector3[] source,
+					 ref Matrix4x4 homography )
     {
 	if( nearClipSpacePoints.Length < 4
 	    || length <= 0
@@ -75,6 +74,39 @@ public static class Homography {
     /// - the world space points form a parallelogram, that is:
     ///   p[1] - p[0] = p[2] - p[3]
     /// </summary>
+    public static void nearClipToCamera( Vector2[] nearClipPos,
+					 ref Vector3[] pts )
+    {	
+	Vector2[] nc = nearClipPos; // alias
+	int n = nc.Length;
+	if (n < 4 || pts.Length < 4) return; // bail
+        // set up system of eq. (p[1] - p[0] = p[2] - p[3])
+	Matrix4x4 em = Matrix4x4.identity; 
+	em[0,0] = nc[0].x; em[0,1] = -nc[1].x; em[0,2] = nc[2].x; em[0,3] = 0;
+	em[1,0] = nc[0].y; em[1,1] = -nc[1].y; em[1,2] = nc[2].y; em[1,3] = 0;
+	em[2,0] =      -1; em[2,1] =        1; em[2,2] =      -1; em[2,3] = 0;
+	em[3,0] =       0; em[3,1] =        0; em[3,2] =       0; em[3,3] = 1;
+	// solve system of eq.
+	// sc.x, sc.y, sx.z, 1 are the (negative) z values of p[0..3]
+	// before scaling
+	Matrix4x4 em_inv = em.inverse;
+	Vector4 sc = em_inv.MultiplyPoint( new Vector4( nc[3].x, nc[3].y,
+							-1, 0 ) );
+	// return resulting Vector3's
+	for ( int i = 0; i < 4; i++ )
+	    pts[i] = new Vector3( nc[i].x, nc[i].y, -1 );
+        pts[0] = pts[0] * sc.x;
+	pts[1] = pts[1] * sc.y;
+	pts[2] = pts[2] * sc.z;
+	float mx = max4 ( Mathf.Abs( pts[0].z ),
+			  Mathf.Abs( pts[1].z ),
+			  Mathf.Abs( pts[2].z ),
+			  Mathf.Abs( pts[3].z ) );
+	float scale = 1 / mx;
+	for ( int i = 0; i < 4; i++ )
+	    pts[i] = pts[i] * scale;
+    }
+
     public static void nearClipToCamera( Vector2[] nearClipPos,
 					 float length,
 					 ref Vector3[] pts )
@@ -104,6 +136,12 @@ public static class Homography {
 	pts[2] = pts[2] * sc.z * scale;
 	pts[3] = pts[3] * scale;
     }
+
+    private static float max4 ( float x, float y, float z, float w ) {
+	return Mathf.Max( Mathf.Max( Mathf.Max( x, y ), z ), w ); }
+
+    private static float min4 ( float x, float y, float z, float w ) {
+    	return -max4( -x, -y, -z, -w ); }
 
     private static Matrix4x4 pointsToMatrix( Vector3[] pts ) {
 	Matrix4x4 m = Matrix4x4.identity;

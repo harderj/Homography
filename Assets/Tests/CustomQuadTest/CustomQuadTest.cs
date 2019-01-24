@@ -11,7 +11,10 @@ public class CustomQuadTest : MonoBehaviour
 
 	// Sensor space points to be transformed.
 	// Order: lower-left, upper-let, upper-right, lower-right.
-	static readonly Vector3[] sensorSourcePoints = { new Vector3( -1, -1, -1), new Vector3( -1, 1, -1 ), new Vector3( 1, 1, -1 ), new Vector3( 1, -1, -1 ) };
+	static readonly Vector3[] sensorSourcePoints = { new Vector3( -1, -1, -1),
+							 new Vector3( -1, 1, -1 ),
+							 new Vector3( 1, 1, -1 ),
+							 new Vector3( 1, -1, -1 ) };
 	
 	// Points set by the user in 2D at (near clip space).
 	Vector3[] _sensorUserPoints = new Vector3[4];
@@ -37,7 +40,10 @@ public class CustomQuadTest : MonoBehaviour
 
 		// Create mesh.
 		_mesh = new Mesh();
-		_mesh.vertices = new Vector3[] { new Vector3( -1, -1, 0 ), new Vector3( -1, 1, 0 ), new Vector3( 1, 1, 0 ), new Vector3( 1, -1, 0 ) };
+		_mesh.vertices = new Vector3[] { new Vector3( -1, -1, -1 ),
+						 new Vector3( -1, 1, -1 ),
+						 new Vector3( 1, 1, -1 ),
+						 new Vector3( 1, -1, -1 ) };
 		_mesh.uv = new Vector2[] { new Vector2(0,0), new Vector2(0,1), new Vector2( 1, 1 ), new Vector2(1,0) };
 		_mesh.triangles = new int[] { 0, 1, 2, 2, 3, 0 };
 	}
@@ -54,10 +60,19 @@ public class CustomQuadTest : MonoBehaviour
 		Camera cam = Camera.current;
 		if( cam.cameraType != CameraType.Game ) return;
 
-
+		Matrix4x4 tMat = Matrix4x4.identity;
+		tMat[0,0] = -1.0f;
+		tMat[1,1] = -1.0f;
+		tMat[2,2] = -1.0f;
+		
 		// Transformed quad.
 		Homography.Find( _sensorUserPoints, ref _homography );
+		_homography = _homography;
 		_material.SetMatrix( "_Matrix", _homography );
+		Debug.Log( _homography.MultiplyPoint ( _sensorUserPoints [ 0 ] ) );
+		Debug.Log( _homography.MultiplyPoint ( _sensorUserPoints [ 1 ] ) );
+		Debug.Log( _homography.MultiplyPoint ( _sensorUserPoints [ 2 ] ) );
+		Debug.Log( _homography.MultiplyPoint ( _sensorUserPoints [ 3 ] ) );
 		_material.SetPass( 0 );
 		Graphics.DrawMeshNow( _mesh, Matrix4x4.identity );
 
