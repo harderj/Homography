@@ -33,7 +33,7 @@
 			o.vertex = v.vertex;
 			//o.vertex = UnityObjectToClipPos( v.vertex );
 			//o.vertex = mul( UNITY_MATRIX_P, o.vertex );
-			//o.vertex = mul( _Matrix, o.vertex );
+			o.vertex = mul( _Matrix, o.vertex );
 			o.uv = v.uv;
 			return o;
 		}
