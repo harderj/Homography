@@ -35,19 +35,18 @@ public static class Homography {
     public static void Find( Vector3[] nearClipSpacePoints,
 			      ref Matrix4x4 homography )
     {
-	if( nearClipSpacePoints.Length < 4 ) return;
-	Vector2[] nc = new Vector2[4];
-	for( int i=0; i<4; i++ )
-	    nc[i] = new Vector2( nearClipSpacePoints[i].x,
-				 nearClipSpacePoints[i].y );
-	nearClipToMatrix( nc, ref homography );
+		if( nearClipSpacePoints.Length < 4 ) return;
+		Vector2[] nc = new Vector2[4];
+		for( int i=0; i<4; i++ )
+	 	   nc[i] = new Vector2( nearClipSpacePoints[i].x,
+								nearClipSpacePoints[i].y );
+		nearClipToMatrix( nc, ref homography );
     }
 
-    public static void nearClipToMatrix( Vector2[] nearClipSpacePoints,
-					 ref Matrix4x4 homography )
+    public static void nearClipToMatrix( Vector2[] nearClipSpacePoints, ref Matrix4x4 homography )
     {
-	Vector3[] pts = new Vector3[4];
-	nearClipToCamera( nearClipSpacePoints, ref pts );
+		Vector3[] pts = new Vector3[4];
+		nearClipToCamera( nearClipSpacePoints, ref pts );
         homography = pointsToTransformation( sensorSourcePoints, pts );
     }
 
@@ -90,8 +89,7 @@ public static class Homography {
 	// sc.x, sc.y, sx.z, 1 are the (negative) z values of p[0..3]
 	// before scaling
 	Matrix4x4 em_inv = em.inverse;
-	Vector4 sc = em_inv.MultiplyPoint( new Vector4( nc[3].x, nc[3].y,
-							-1, 0 ) );
+	Vector4 sc = em_inv.MultiplyPoint( new Vector4( nc[3].x, nc[3].y, -1, 0 ) );
 	// return resulting Vector3's
 	for ( int i = 0; i < 4; i++ )
 	    pts[i] = new Vector3( nc[i].x, nc[i].y, -1 );
@@ -131,10 +129,10 @@ public static class Homography {
 	float scale = length / tv.magnitude;
 	// return resulting Vector3's
 	for ( int i = 0; i < 4; i++ ) pts[i] = new Vector3( nc[i].x, nc[i].y, -1 );
-        pts[0] = pts[0] * sc.x * scale;
-	pts[1] = pts[1] * sc.y * scale;
-	pts[2] = pts[2] * sc.z * scale;
-	pts[3] = pts[3] * scale;
+    	pts[0] = pts[0] * sc.x * scale;
+		pts[1] = pts[1] * sc.y * scale;
+		pts[2] = pts[2] * sc.z * scale;
+		pts[3] = pts[3] * scale;
     }
 
     private static float max4 ( float x, float y, float z, float w ) {
@@ -146,16 +144,25 @@ public static class Homography {
     private static Matrix4x4 pointsToMatrix( Vector3[] pts ) {
 	Matrix4x4 m = Matrix4x4.identity;
 	for (int i = 0; i < 3 && i < pts.Length; i ++)
-	    m.SetColumn( i, new Vector4( pts[i].x, pts[i].y, pts[i].z, 0) );
+	    m.SetColumn( i, new Vector4( pts[i].x, pts[i].y, pts[i].z, 1) );
 	if( pts.Length > 3 )
 	    m.SetColumn( 3, new Vector4( pts[3].x, pts[3].y, pts[3].z, 1 ) );
 	return m;
     }
 
-    private static Matrix4x4 pointsToTransformation( Vector3[] source,
-						    Vector3[] destination ){
+    private static Matrix4x4 pointsToTransformation( Vector3[] source, Vector3[] destination ){
 	Matrix4x4 s = pointsToMatrix( source );
 	Matrix4x4 d = pointsToMatrix( destination );
 	return d * s.inverse;
     }
+
+	public static Matrix4x4 pointsToTransMat( Vector3[] dest ){
+
+		return Matrix4x4.identity;
+	}
+
+	public static Matrix4x4 pointsToRotMat( Vector3[] pts ){
+
+		return Matrix4x4.identity;
+	}
 }
