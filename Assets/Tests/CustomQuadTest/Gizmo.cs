@@ -17,7 +17,7 @@ public class Gizmo : MonoBehaviour
     }
 
     void OnDrawGizmos() {
-        Gizmos.DrawSphere( this.transform.position, 0.5f );
+        Gizmos.DrawSphere( this.transform.position, 0.1f );
         
     }
 }

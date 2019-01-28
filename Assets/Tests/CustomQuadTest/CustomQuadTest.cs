@@ -11,49 +11,40 @@ public class CustomQuadTest : MonoBehaviour
 
 	// Sensor space points to be transformed.
 	// Order: lower-left, upper-let, upper-right, lower-right.
-	static readonly Vector3[] sensorSourcePoints = {
-							new Vector3( -1, -1, 0 ),
-							 new Vector3( -1, 1, 0 ),
-							 new Vector3( 1, 1, 0 ),
-							 new Vector3( 1, -1, 0 ) };
-	
-	// Points set by the user in 2D at (near clip space).
-	Vector3[] _sensorUserPoints = new Vector3[4];
 	
 	// UI.
 	int _selectedCornerIndex = -1;
 	
 	// Result.
 	Matrix4x4 _homography;
-
 	Material _material;
-
     Mesh _mesh;
+	Camera cam;
+	Vector2[] _userScreenPoints;
 
-	public GameObject[] Gizs;
-
-	public Matrix4x4 theMatrix;
-
-	Vector3[] meshVerts;
+	public GameObject[] Gizs; // for debug
     
 	void Awake()
 	{
+		cam = this.GetComponent<Camera>();
+
 		// Start with user points at source points.
-		sensorSourcePoints.CopyTo( _sensorUserPoints, 0 );
+		float w = cam.pixelWidth;
+		float h = cam.pixelHeight;
+		_userScreenPoints = new Vector2[4];
+		_userScreenPoints[0] = new Vector2( 0, 0 );
+		_userScreenPoints[1] = new Vector2( 0, h );
+		_userScreenPoints[2] = new Vector2( w, h );
+		_userScreenPoints[3] = new Vector2( w, 0 );
 
 		// Create material.
 		_material = new Material( Shader.Find( "Hidden/HomographytCustomQuadTest" ) );
 
 		// Create mesh.
 		_mesh = new Mesh();
-		_mesh.vertices = new Vector3[] {
-						new Vector3( -1, -1, 0 ),
-						 new Vector3( -1, 1, 0 ),
-						 new Vector3( 1, 1, 0 ),
-						 new Vector3( 1, -1, 0 ) };
+		_mesh.vertices = new Vector3[4];
 		_mesh.uv = new Vector2[] { new Vector2(0,0), new Vector2(0,1), new Vector2( 1, 1 ), new Vector2(1,0) };
 		_mesh.triangles = new int[] { 0, 1, 2, 2, 3, 0 };
-		meshVerts = _mesh.vertices;
 	}
 
 
@@ -62,53 +53,34 @@ public class CustomQuadTest : MonoBehaviour
 		UpdateUserInteraction();
 	}
 
-
 	void OnRenderObject()
 	{
-		
+		Vector3[] pts = Homography.screenPointsToWorld( cam, _userScreenPoints, 5.0f);
+		_mesh.vertices = pts;
 
-		
-		/*
-		// Handles.
-		for( int i = 0; i < 4; i++ ){
-			//Debug.Log( _sensorUserPoints[i] );
-			Matrix4x4 mat = Matrix4x4.TRS( (Vector2) _sensorUserPoints[i], Quaternion.identity, new Vector3(1,cam.aspect,1) * 0.01f );
-			_material.SetMatrix( "_Matrix", mat );
-			_material.SetPass( 0 );
-			Graphics.DrawMeshNow( _mesh, Matrix4x4.identity );
-		}
-		*/
-	}
-
-	void OnPostRender(){
-
-		Camera cam = Camera.current;
-		if( cam.cameraType != CameraType.Game ) return;
-		
-
-		Homography.Find( _sensorUserPoints, ref _homography );
-
-		Vector3[] verts = new Vector3[4];
-		for( int i=0; i<4; i++ ){
-			meshVerts[i] = Gizs[i].transform.position;
-			//Debug.Log( meshVerts[i] );
-			
-		}
-
-		_mesh.vertices = meshVerts;
+		// for( int i = 0; i < 4; i++ ){
+		// 	Vector3 pnt = new Vector3( _userScreenPoints[i].x, _userScreenPoints[i].y, cam.nearClipPlane );
+		// 	_mesh.vertices[i] = cam.ScreenToWorldPoint( pnt );
+		// }
 
 		Matrix4x4 wtc = cam.worldToCameraMatrix;
-		Matrix4x4 ctw = cam.cameraToWorldMatrix;
+		Matrix4x4 proj = cam.projectionMatrix;
+		Matrix4x4 adjustedProj = GL.GetGPUProjectionMatrix( proj, true );
 
-		Matrix4x4 gizTransMat = Gizs[0].transform.localToWorldMatrix;
-
-		_material.SetMatrix( "_Matrix", Matrix4x4.identity );
+		_material.SetMatrix( "_Matrix", adjustedProj * wtc );
 		
 		_material.SetPass( 0 );
 
 		Graphics.DrawMeshNow( _mesh, Matrix4x4.zero );
+
 	}
 
+	void OnDrawGizmos(){
+		for( int i = 0; i < 4; i++ ){
+			//Debug.Log( _mesh.vertices[i] );
+			//Gizmos.DrawWireSphere( _mesh.vertices[i], 0.2f); // causes error messages, when uninitialized (not playing)
+		}
+	}
 
 	void UpdateUserInteraction()
 	{
@@ -116,15 +88,12 @@ public class CustomQuadTest : MonoBehaviour
 
 		// Get mouse position and transform it to clip space.
 		Vector2 mousePosition = Input.mousePosition;
-		mousePosition.y = cam.pixelHeight - mousePosition.y; // flip vertically
-		mousePosition.Scale( new Vector2( 2/(float) cam.pixelWidth, 2/(float) cam.pixelHeight ) );
-		mousePosition -= Vector2.one;
 
 		// Select (nearest corner) & deselect.
 		if( Input.GetMouseButtonDown( 0 ) ){
 			float closestDist = float.MaxValue;
 			for( int i = 0; i < 4; i++ ){
-				float dist = Vector2.Distance( _sensorUserPoints[i], mousePosition );
+				float dist = Vector2.Distance( _userScreenPoints[i], mousePosition );
 				if( dist < closestDist ){
 					closestDist = dist;
 					_selectedCornerIndex = i;
@@ -136,7 +105,7 @@ public class CustomQuadTest : MonoBehaviour
 
 		// Update selected user point from mouse position.
 		if( _selectedCornerIndex != -1 ) {
-			_sensorUserPoints[_selectedCornerIndex].Set( mousePosition.x, mousePosition.y, 0 );
+			_userScreenPoints[_selectedCornerIndex] = new Vector2( mousePosition.x, mousePosition.y );
 		}
 	}
 }
